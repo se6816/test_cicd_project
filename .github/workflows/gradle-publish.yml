@@ -38,7 +38,7 @@ jobs:
         
       - name: Extract version from build.gradle
         id: extract_version
-        run: echo "VERSION=$(./gradlew properties -q | grep 'version: ' | awk '{print $2}')" >> $GITHUB_ENV
+        run: echo "VERSION=$(./gradlew properties -q | grep 'version: ' | awk '{print $2}')"
 
         
       - name: Build and push Docker image to ECR
