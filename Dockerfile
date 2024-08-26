@@ -1,10 +1,9 @@
-FROM openjdk:21-jdk-alpine
+FROM openjdk:21
 
 WORKDIR /app
 
 COPY build/libs/*.jar app.jar
 
-# Expose the port the application will run on
 EXPOSE 8080
 
 
