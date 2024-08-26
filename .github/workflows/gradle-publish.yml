@@ -7,7 +7,8 @@ on:
   pull_request:
     branches:
       - main
-
+env:
+  VERSION : "VERSION=$(./gradlew properties -q | grep 'version: ' | awk '{print $2}')"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,16 +37,11 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         
-      - name: Extract version from build.gradle
-        id: extract_version
-        run: echo "VERSION=$(./gradlew properties -q | grep 'version: ' | awk '{print $2}')"
-
-        
       - name: Build and push Docker image to ECR
         env:
           ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ env.VERSION }}
+          IMAGE_TAG: $VERSION
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
