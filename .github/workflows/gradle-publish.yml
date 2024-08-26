@@ -7,8 +7,6 @@ on:
   pull_request:
     branches:
       - main
-env:
-  VERSION: "VERSION=$(./gradlew properties -q | grep 'version: ' | awk '{print $2}')"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,18 +33,24 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
-
+          
+      - name: Extract version from build.gradle
+        id: extract_version
+        run: |
+          echo "VERSION=$(./gradlew properties -q | grep 'version: ' | awk '{print $2}')" >> $GITHUB_ENV
+          echo "${VERSION}"
+        
+        
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-        
+      
       - name: Build and push Docker image to ECR
         env:
           ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ env.VERSION }}
+          IMAGE_TAG: ${{ VERSION }}
         run: |
-          echo "${IMAGE_TAG}"
           docker build .
           docker build -t parcel-check:$IMAGE_TAG .
           docker tag parcel-check:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
